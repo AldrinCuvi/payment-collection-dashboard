@@ -8,8 +8,8 @@ Prueba técnica para el cargo de Junior Developer para EasySoft.
 ### Requisitos Previos
 Para ejecutar este proyecto, necesitarás tener instalados los siguientes programas:
 
-- [Python] - Versión 3.12.3
-- [PyCharm] - Versión 2024.1.1 o inferior (opcional)
+- [Python](https://www.python.org/downloads/) - Versión 3.12.3
+- [PyCharm](https://www.jetbrains.com/pycharm/download/?section=windows) - Versión 2024.1.1 o inferior (opcional)
 
 ### Instalación de Dependencias
 Para instalar las dependencias necesarias, sigue estos pasos:

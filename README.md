@@ -19,7 +19,6 @@ Para instalar las dependencias necesarias, sigue estos pasos:
 3. Ejecuta el siguiente comando:
 
 ```bash
-Copy code
 pip install -r requirements.txt
 ```
 

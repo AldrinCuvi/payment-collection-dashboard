@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Pago</th>
+                        <th>Cobro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hour in hours %}
+                    <tr id="{{ loop.index }}">
+                        <td>{{ hour }}</td>
+                        <td><input type="number" name="pago[]" ></td>
+                        <td><input type="number" name="cobro[]"></td>
+                        <td>
+                            <div class="buttons-action-container">
+                                <button id="actualizar" onclick="actualizar(this)" class="modify" style="background-color: gray; cursor: not-allowed;" disabled>Actualizar</button>
+                                <button id="eliminar" onclick="eliminar(this)"  class="delete" style="background-color: gray; cursor: not-allowed;" disabled>Eliminar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button id="agregar" onclick="agregarDatos()" class="add">Generar</button>
+
+        </div>
+        <div class="dashboard-container">
+            <div id="dashboard"></div>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+
+        const agregarBtn = document.getElementById('agregar');
+
+        function crearChart(horas, pagos, cobros){
+            chart = Highcharts.chart('dashboard', {
+                    credits: {
+                        enabled: false,
+                    },
+                    title: {
+                        text: 'Pagos y Cobros por Hora'
+                    },
+                    xAxis: {
+                        title: {
+                            text: 'Horas del día'
+                        },
+                        categories: horas
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Dólares'
+                        }
+                    },
+                    series: [{
+                        name: 'Pagos',
+                        type: 'column',
+                        data: pagos,
+                        color: 'lightblue'
+                    }, {
+                        name: 'Cobros',
+                        type: 'line',
+                        data: cobros,
+                        color: 'red'
+                    }]
+                });
+        }
+
+        function agregarDatos() {
+            let pagos = [];
+            let cobros = [];
+            let horas = [];
+
+            // Obtener los datos de la tabla
+            const filas = document.querySelectorAll('tbody tr');
+
+            filas.forEach(function(fila) {
+                const hora = fila.querySelector('td:first-child').innerText;
+                const pago = fila.querySelector('input[name="pago[]"]').value;
+                const cobro = fila.querySelector('input[name="cobro[]"]').value;
+
+                horas.push(hora);
+                pagos.push(parseFloat(pago));
+                cobros.push(parseFloat(cobro));
+            });
+
+            // Enviar los datos al servidor
+            fetch('/generar_json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ horas: horas, pagos: pagos, cobros: cobros }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                crearChart(data.horas, data.pagos, data.cobros);
+
+                const botonesActualizar = document.querySelectorAll('.modify');
+                botonesActualizar.forEach(boton => {
+                    boton.disabled = false;
+                    boton.style.backgroundColor = '';
+                    boton.style.cursor = 'pointer';
+                });
+
+                const botonesEliminar = document.querySelectorAll('.delete');
+                botonesEliminar.forEach(boton => {
+                    boton.disabled = false;
+                    boton.style.backgroundColor = '';
+                    boton.style.cursor = 'pointer';
+                });
+
+                agregarBtn.disabled = true;
+                agregarBtn.style.backgroundColor = 'gray';
+                agregarBtn.style.cursor = 'not-allowed';
+              });
+        }
+
+        function actualizar(boton) {
+            const fila = boton.closest('tr');
+            const hora = fila.querySelector('td:first-child').innerText;
+            const pagoInput = fila.querySelector('input[name="pago[]"]');
+            const cobroInput = fila.querySelector('input[name="cobro[]"]');
+
+            const nuevoPago = parseFloat(pagoInput.value);
+            const nuevoCobro = parseFloat(cobroInput.value);
+
+            fetch('/actualizar_datos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ hora: hora, pago: nuevoPago, cobro: nuevoCobro }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const index = chart.xAxis[0].categories.indexOf(hora);
+                    chart.series[0].data[index].update(nuevoPago);
+                    chart.series[1].data[index].update(nuevoCobro);
+                }
+            });
+        }
+
+        function eliminar(boton) {
+            const fila = boton.closest('tr');
+            const hora = fila.querySelector('td:first-child').innerText;
+
+            // Mostrar un mensaje de confirmación antes de eliminar
+            if (confirm("¿Estás seguro de que deseas eliminar los datos para la hora " + hora + "?")) {
+                fetch('/eliminar_datos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ hora: hora }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Limpiar los inputs
+                        fila.querySelector('input[name="pago[]"]').value = '';
+                        fila.querySelector('input[name="cobro[]"]').value = '';
+
+                        const index = chart.xAxis[0].categories.indexOf(hora);
+                        chart.series[0].data[index].update(null);
+                        chart.series[1].data[index].update(null);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

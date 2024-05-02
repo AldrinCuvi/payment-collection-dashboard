@@ -1,0 +1,92 @@
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+:root {
+  --blue: #207cd8;
+  --red: #e92e2e;
+  --green: #55d24c;
+  --light-green: #81de7b;
+}
+
+body {
+  padding: 1rem;
+  margin: 0;
+  font-family: "Roboto";
+}
+
+label {
+  font-size: 12px;
+}
+
+input {
+  padding: 8px;
+  width: calc(100%-16px);
+  border-radius: 10px;
+  border: 1px solid #9e9e9e;
+}
+
+button {
+  font-weight: bold;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.5s;
+  width: 100%;
+  color: white;
+}
+
+.container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.table-container{
+    display: flex;
+}
+
+.buttons-action-container{
+    display: flex;
+    gap: 8px;
+}
+
+.dashboard-container{
+}
+
+.hour,
+.payment,
+.collection {
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem 0;
+}
+
+.btn-add {
+  display: flex;
+  justify-content: center;
+}
+
+.add {
+  height: fit-content;
+  background-color: var(--green);
+}
+
+.add:hover {
+  background-color: var(--light-green);
+}
+
+.modify{
+  background-color: var(--blue);
+}
+
+.delete{
+    background-color: var(--red);
+}
